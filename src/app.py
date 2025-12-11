@@ -31,4 +31,4 @@ def sqrt(a):
     return a ** .5
 
 def pct(a):
-    return a * 100 + '%'
+    return a * 100
