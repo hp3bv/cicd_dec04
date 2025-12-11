@@ -10,7 +10,7 @@ def mult(a, b):
     return a*b
 
 def div(dividend,divisor):
-    if divisor = 0:
+    if divisor == 0:
         return None
     return dividend / divisor
 
