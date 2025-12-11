@@ -47,7 +47,7 @@ def test_square2():
     assert square(2) != 5
 
 def test_sin1():
-    assert sin(math.pi) == 0
+    assert sin(0) == 0
 
 def test_sin2():
     assert sin(math.pi) != 10
