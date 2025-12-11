@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ development ]
   pull_request:
 
 jobs:
@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,11 +24,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run basic tests
-        run: pytest -q
+        run: pip install -r requirements.txt
 
       - name: Run tests with coverage
         run: |
@@ -42,7 +40,9 @@ jobs:
           mv htmlcov sites/
           mv coverage.xml sites/
 
-      - name: upload the artifacts
-        uses: actions/upload-pages-artifact@v4
+      - name: Upload Test Coverage Artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: coverage-artifact
           path: ./sites
+          retention-days: 1
