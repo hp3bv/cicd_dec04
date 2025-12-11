@@ -26,7 +26,7 @@ def test_mult2():
     assert mult(8,1) != 0
 
 def test_div1():
-    assert div(8,1) == 1
+    assert div(8,1) == 8
 
 def test_div2():
     assert div(8,0) is None
