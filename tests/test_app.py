@@ -53,7 +53,7 @@ def test_sin2():
     assert sin(math.pi) != 10
 
 def test_cos1():
-    assert cos(math.pi) == 1
+    assert cos(0) == 1
 
 def test_cos2():
     assert cos(math.pi) != 0
