@@ -27,7 +27,8 @@ def cos(a):
     return math.cos(a)
 
 def sqrt(a):
-    if a < 0: return None
+    if a < 0: 
+        return None
     return a ** .5
 
 def pct(a):

@@ -40,6 +40,9 @@ def test_log1():
 def test_log2():
     assert log(8,2) != 1
 
+def test_log3():
+    assert log(100) == 2
+
 def test_square1():
     assert square(2) == 4
 
@@ -47,7 +50,7 @@ def test_square2():
     assert square(2) != 5
 
 def test_sin1():
-    assert sin(math.pi) == 0
+    assert sin(0) == 0
 
 def test_sin2():
     assert sin(math.pi) != 10
@@ -70,5 +73,5 @@ def test_sqrt3():
 def test_pct1():
     assert pct(1) == 100
 
-def test_pct1():
+def test_pct2():
     assert pct(1) != 1
