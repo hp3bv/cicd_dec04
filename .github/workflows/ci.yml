@@ -1,0 +1,43 @@
+name: CI (Development Tests)
+
+on:
+  push:
+    # 🎯 REQUIREMENT 3: Triggers only on changes to development branch
+    branches: [ development ] 
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Only needs read permission for code checkout
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python and Install dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: pip install -r requirements.txt
+
+      - name: Run tests and generate coverage report
+        run: |
+          pytest -q \
+            --cov=. \
+            --cov-report=term \
+            --cov-report=html 
+
+      - name: Prepare Artifact Folder
+        run: |
+          # Move htmlcov to the desired artifact path
+          mkdir sites
+          mv htmlcov sites/
+          
+      # 🚀 CRUCIAL STEP 1: Upload the artifact
+      - name: Upload Test Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-artifact
+          path: ./sites
+          retention-days: 5 # Give it a few days for the CD job to run
