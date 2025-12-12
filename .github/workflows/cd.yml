@@ -1,18 +1,23 @@
-name: CD - Deploy on Merge to Main
+name: CD - Deploy Coverage Report
 
 on:
   push:
     branches:
       - main
-    # optional: restrict to merges only
-    # types: [merged]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -23,8 +28,17 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
+          pip install pytest pytest-cov
 
-      - name: Deployment Step
+      - name: Run tests + coverage
         run: |
-          echo "🚀 Deploying application..."
-          # Your deploy commands go here
+          pytest -q --cov=. --cov-report=html
+
+      - name: Upload artifact for deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./htmlcov
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
