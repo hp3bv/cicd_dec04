@@ -44,6 +44,9 @@ def test_log2():
 def test_log3():
     assert log(100) == 2
 
+def test_log4():
+    assert log(50) == math.log(50, 10)
+
 def test_square1():
     assert square(2) == 4
 
