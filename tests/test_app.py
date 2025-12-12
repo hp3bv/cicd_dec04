@@ -7,6 +7,7 @@ sys.path.insert(0, str(root / "src"))
 
 from app import add, sub, mult, div, log, square, sin, cos, sqrt, pct
 
+# add test
 def test_add_1():
     assert add(5, 6) == 11
 
