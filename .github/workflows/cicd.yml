@@ -1,0 +1,87 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    # Trigger on both development (for testing) and main (for deployment)
+    branches: [ development, main ]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    
+    # 1. Condition: Only run tests if the branch is 'development'
+    if: github.ref == 'refs/heads/development'
+    
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # ... (Steps for Setup Python, Install dependencies) ...
+
+      - name: Run tests with coverage
+        # ... (Test commands are the same) ...
+
+      - name: Prepare and Upload Deployment Artifact
+        run: |
+          mkdir sites
+          mv htmlcov sites/
+          mv coverage.xml sites/
+
+      # 2. Use upload-artifact here for subsequent job use (optional, but good practice)
+      - name: Upload Test Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-artifact
+          path: ./sites
+          
+  Deploy:
+    # 3. Needs the run-tests job to succeed (if it ran)
+    needs: run-tests 
+    runs-on: ubuntu-latest
+    
+    # 4. Condition: ONLY run deployment if the branch is 'main'
+    if: github.ref == 'refs/heads/main'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+      
+    steps:
+      # We need to re-checkout the code on 'main' to deploy it
+      - name: Checkout code (on main)
+        uses: actions/checkout@v4
+        
+      # 5. Re-run artifact preparation on 'main' branch content (if needed)
+      # OR, if you want the artifact from development, you need to download it:
+      
+      - name: Install dependencies (Required to run pytest/coverage again if regenerating artifact)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: pip install -r requirements.txt
+
+      - name: Run tests and Prepare Artifact on Main
+        run: |
+          # Re-run tests to generate htmlcov using the code on the main branch
+          pytest -q --cov=. --cov-report=html
+          mkdir sites
+          mv htmlcov sites/
+          mv coverage.xml sites/
+
+      # 6. Upload the deployment artifact on the 'main' branch run
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./sites
+          
+      # 7. Deploy the artifacts (this will find the artifact uploaded in step 6)
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
