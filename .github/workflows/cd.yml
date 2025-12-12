@@ -1,15 +1,24 @@
-name: CD (Deployment)
+# In .github/workflows/cd.yml
+name: CD
 
 on:
-  push:
-    branches: [ main ]
+  # 1. Use workflow_run instead of push
+  workflow_run:
+    # Trigger only when the workflow with this EXACT name completes
+    workflows: ["CI (Test and Build Artifact)"] 
+    types: 
+      - completed
+    # Trigger only if the CI workflow ran against the 'main' branch
+    branches:
+      - main 
 
 jobs:
   Download-and-Deploy:
+    # Condition: Only run if the triggering CI workflow was successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      # ... (environment details)
     permissions:
       pages: write
       id-token: write
@@ -17,16 +26,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download Test Coverage Artifact
-        uses: actions/download-artifact@v4
+      
+      # 2. Use the specialized action to download from a prior workflow run
+      - name: Download Artifact from CI Run
+        # This action supports downloading artifacts from other workflow runs.
+        uses: dawidd6/action-download-artifact@v3 
         with:
-          name: coverage-artifact
-          path: ./sites
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id || github.run_id }} 
-          workflow: CI
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Provide the name of the artifact to download
+          name: coverage-artifact 
+          # Provide the ID of the run that triggered this workflow
+          run_id: ${{ github.event.workflow_run.id }} 
+          # Download to the expected path
+          path: ./sites 
           
+      # 3. Use the downloaded artifact to deploy to GitHub Pages
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4
         with:
@@ -35,4 +49,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        
