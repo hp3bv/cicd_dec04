@@ -1,0 +1,49 @@
+name: CD (Main Deployment)
+
+on:
+  # 🎯 REQUIREMENT 4: Triggers only when CI runs on the main branch
+  workflow_run:
+    # Use the EXACT name of the CI workflow file above
+    workflows: ["CI (Development Tests)"] 
+    types: 
+      - completed
+    # This ensures it only runs if the CI workflow completed on the 'main' branch
+    branches:
+      - main 
+
+jobs:
+  Deploy-Pages:
+    # 🎯 REQUIREMENT 2: Only trigger CD if the CI run was successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # 🚀 CRUCIAL STEP 2: Download the artifact from the triggering workflow run
+      - name: Download Artifact from CI Run
+        # Use a dedicated action to download from a prior workflow run ID
+        uses: dawidd6/action-download-artifact@v3 
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          name: deployment-artifact # Match the name from the CI workflow
+          # This ID links directly to the CI run that just completed
+          run_id: ${{ github.event.workflow_run.id }} 
+          path: ./sites 
+          
+      # 🚀 CRUCIAL STEP 3: Stage the downloaded artifact for deployment
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./sites
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
